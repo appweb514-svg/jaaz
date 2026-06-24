@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing_extensions import Optional, TypedDict
 from langchain_core.tools import BaseTool
 
 class ToolInfoRequired(TypedDict):

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Literal, TypedDict
+from typing_extensions import Literal, TypedDict
 
 class LLMConfig(BaseModel):
     model: str

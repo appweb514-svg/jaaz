@@ -9,7 +9,7 @@ from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from services.websocket_service import send_to_websocket  # type: ignore
 from services.config_service import config_service
-from typing import Optional, List, Dict, Any, cast, Set, TypedDict
+from typing_extensions import Optional, List, Dict, Any, cast, Set, TypedDict
 from models.config_model import ModelInfo
 
 

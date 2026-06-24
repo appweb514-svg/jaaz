@@ -3,7 +3,7 @@ import os
 import traceback
 import aiofiles
 import toml
-from typing import Dict, TypedDict, Literal, Optional
+from typing_extensions import Dict, TypedDict, Literal, Optional
 
 # 定义配置文件的类型结构
 
@@ -38,6 +38,11 @@ DEFAULT_PROVIDERS_CONFIG: AppConfig = {
         'url': os.getenv('BASE_API_URL', 'https://jaaz.app').rstrip('/') + '/api/v1/',
         'api_key': '',
         'max_tokens': 8192,
+    },
+    'runninghub': {
+        'enabled': False,
+        'api_key': '',
+        'workflow_id': '2069523159090552833',
     },
     'comfyui': {
         'models': {},
