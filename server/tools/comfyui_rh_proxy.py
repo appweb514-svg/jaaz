@@ -32,16 +32,18 @@ RH_BASE = "https://www.runninghub.ai"
 RH_H = {"Content-Type": "application/json", "Host": "www.runninghub.ai"}
 
 def rh_call(endpoint: str, payload: dict, timeout: int = 30) -> dict:
+    import urllib.request, urllib.error
     key = get_rh_key()
     headers = {**RH_H, "Authorization": f"Bearer {key}"}
     payload["apiKey"] = key
     data = json.dumps(payload).encode()
-    req = __import__('urllib.request').Request(f"{RH_BASE}{endpoint}", data=data, headers=headers)
+    req = urllib.request.Request(f"{RH_BASE}{endpoint}", data=data, headers=headers)
     try:
-        resp = __import__('urllib.request').urlopen(req, timeout=timeout)
+        resp = urllib.request.urlopen(req, timeout=timeout)
         return json.loads(resp.read())
-    except __import__('urllib.error').HTTPError as e:
-        raise HTTPException(502, f"RH Error: {e.read().decode()[:200]}")
+    except urllib.error.HTTPError as e:
+        err = e.read().decode()[:200]
+        raise HTTPException(502, f"RH Error {e.code}: {err}")
 
 # A simple in-memory task store
 tasks = {}
@@ -80,33 +82,36 @@ async def object_info():
 @app.post("/prompt")
 async def queue_prompt(request: Request):
     """Receive ComfyUI workflow, execute on RunningHub"""
-    global _task_counter
     body = await request.json()
     workflow = body.get("prompt", {})
-    client_id = body.get("client_id", "jaaz")
     
     prompt_id = f"{TASK_PREFIX}{int(time.time()*1000)}"
     
-    # Extract prompt from workflow
+    # Extract prompt text from workflow nodes
     prompt_text = ""
     for nid, node in workflow.items():
         ct = node.get("class_type", "")
-        if "TextToVideo" in ct or "CLIPTextEncode" == ct:
-            prompt_text = node.get("inputs", {}).get("text", "") or node.get("inputs", {}).get("prompt", "")
+        inputs = node.get("inputs", {})
+        if "TextToVideo" in ct:
+            prompt_text = inputs.get("prompt", inputs.get("text", ""))
+            break
+        elif "CLIPTextEncode" == ct:
+            prompt_text = inputs.get("text", "")
             break
     
-    # Execute on RunningHub
+    # Just submit directly to RunningHub with a generic prompt override
     try:
         result = rh_call("/task/openapi/create", {
             "workflowId": WORKFLOW_ID,
             "addMetadata": False
         })
         task_id = result["data"]["taskId"]
-        tasks[prompt_id] = {"task_id": task_id, "status": "QUEUED", "outputs": []}
+        tasks[prompt_id] = {"task_id": task_id, "status": "QUEUED", "outputs": [], "created": time.time()}
     except Exception as e:
         tasks[prompt_id] = {"task_id": "", "status": "FAILED", "error": str(e)}
     
     return JSONResponse(content={"prompt_id": prompt_id, "number": 1})
+
 
 @app.get("/history/{prompt_id}")
 async def get_history(prompt_id: str):
@@ -115,32 +120,40 @@ async def get_history(prompt_id: str):
     if not task:
         return JSONResponse(content={})
     
+    # Check RunningHub status
     try:
         status = rh_call("/task/openapi/status", {"taskId": task["task_id"]})
         s = status.get("data", "")
+        task["status"] = s
+        
         if s == "SUCCESS":
             outputs = rh_call("/task/openapi/outputs", {"taskId": task["task_id"]})
-            task["status"] = "SUCCESS"
             task["outputs"] = outputs.get("data", [])
+            
+            # Return in ComfyUI format
+            output = {}
+            for i, o in enumerate(task["outputs"]):
+                output[str(i)] = {"videos": [{"filename": o["fileUrl"], "type": "output", "format": o.get("fileType", "mp4")}]}
+            
+            return JSONResponse(content={
+                prompt_id: {
+                    "status": "success",
+                    "outputs": {"9": output} if output else {},
+                }
+            })
+        elif s == "FAILED":
+            return JSONResponse(content={
+                prompt_id: {"status": "error"}
+            })
+        else:
+            # RUNNING / QUEUED
+            return JSONResponse(content={
+                prompt_id: {"status": "running"}
+            })
     except:
-        pass
-    
-    if task["status"] == "SUCCESS" and task["outputs"]:
-        # Return in ComfyUI history format
-        output = {}
-        for i, o in enumerate(task["outputs"]):
-            output[str(i)] = {"images": [{"filename": o["fileUrl"], "type": o["fileType"]}]}
-        
         return JSONResponse(content={
-            prompt_id: {
-                "status": "success",
-                "outputs": {"9": output} if output else {},
-            }
+            prompt_id: {"status": "running"}
         })
-    
-    return JSONResponse(content={
-        prompt_id: {"status": "running" if task["status"] != "FAILED" else "error"}
-    })
 
 @app.get("/view")
 async def view_file(filename: str = "", type: str = "", subfolder: str = "", **kwargs):
