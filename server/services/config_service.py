@@ -41,7 +41,7 @@ DEFAULT_PROVIDERS_CONFIG: AppConfig = {
     },
     'comfyui': {
         'models': {},
-        'url': 'http://127.0.0.1:8188',
+        'url': 'http://127.0.0.1:8199',
         'api_key': '',
     },
     'ollama': {
