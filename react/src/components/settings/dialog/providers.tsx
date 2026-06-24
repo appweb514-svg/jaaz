@@ -113,15 +113,15 @@ const SettingProviders = () => {
           </div>
         ))}
 
-      <div className="flex fixed bottom-0 left-[calc(var(--sidebar-width))] gap-1 right-0 px-1">
-        <Button onClick={handleSave} className="w-1/2" size="lg">
+      <div className="flex sticky bottom-0 gap-1 px-1 py-2 w-full sm:w-auto bg-background">
+        <Button onClick={handleSave} className="w-1/2 sm:w-auto" size="lg">
           <Save className="mr-2 h-6 w-6" /> {t('settings:saveSettings')}
         </Button>
 
         <Button
           variant="outline"
           onClick={() => setIsAddProviderDialogOpen(true)}
-          className="w-1/2"
+          className="w-1/2 sm:w-auto"
           size="lg"
         >
           <Plus className="h-6 w-6" />

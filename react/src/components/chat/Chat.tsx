@@ -588,7 +588,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   return (
     <PhotoProvider>
-      <div className='flex flex-col h-screen relative'>
+      <div className='flex flex-col h-full relative overflow-y-auto'
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+        }}
+      >
         {/* Chat messages */}
 
         <header className='flex items-center px-2 py-2 absolute top-0 z-1 w-full'>

@@ -462,8 +462,8 @@ const ChatTextarea: React.FC<ChatTextareaProps> = ({
         }}
       />
 
-      <div className="flex items-center justify-between gap-2 w-full">
-        <div className="flex items-center gap-2 max-w-[calc(100%-50px)] flex-wrap">
+      <div className="flex items-center justify-between gap-2 w-full flex-wrap">
+        <div className="flex items-center gap-2 max-w-full flex-wrap">
           <input
             ref={imageInputRef}
             type="file"

@@ -60,7 +60,7 @@ const CommonDialogContent: React.FC<CommonDialogProps> = ({
             <div className="fixed inset-0 flex items-center justify-center z-50">
               <motion.div
                 className={cn(
-                  'grid rounded-lg p-4 min-w-[300px] w-full max-w-lg gap-4 border bg-background shadow-lg sm:rounded-lg',
+                  'grid rounded-lg p-4 min-w-[300px] w-full max-w-[95vw] sm:max-w-lg gap-4 border bg-background shadow-lg sm:rounded-lg',
                   className
                 )}
                 initial={initialState}

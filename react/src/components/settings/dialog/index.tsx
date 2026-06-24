@@ -31,7 +31,7 @@ const SettingsDialog = () => {
       <CommonDialogContent
         open={open}
         transformPerspective={6000}
-        className="flex flex-col p-0 gap-0 w-screen! h-screen! max-h-[100vh]! max-w-[100vw]! rounded-none! border-none! shadow-none!"
+        className="flex flex-col p-0 gap-0 w-[95vw] sm:w-full max-w-2xl h-[90vh] max-h-[100vh] rounded-lg sm:rounded-none! border shadow-lg overflow-y-auto sm:border-none! sm:shadow-none!"
       >
         <SidebarProvider className="h-[calc(100vh-60px)]! min-h-[calc(100vh-60px)]! flex-1 relative">
           <SettingSidebar

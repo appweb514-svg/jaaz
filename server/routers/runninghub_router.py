@@ -3,6 +3,7 @@ RunningHub integration routes for Jaaz
 """
 from fastapi import APIRouter, HTTPException, Request
 from services.config_service import config_service
+from tools.rh_models import get_available_models, get_workflow_models
 import json, os, urllib.request, urllib.error
 
 router = APIRouter(prefix="/runninghub", tags=["runninghub"])
@@ -12,8 +13,6 @@ RH_BASE = "https://www.runninghub.ai"
 @router.get("/status")
 async def get_status():
     """Get RunningHub connection status"""
-    # Re-read config from file if needed
-    import asyncio
     if hasattr(config_service, 'initialize') and not config_service.initialized:
         await config_service.initialize()
     settings = config_service.get_config()
@@ -63,11 +62,10 @@ async def update_settings(request: Request):
 
 @router.get("/workflows")
 async def list_workflows():
-    """List workflows from config"""
+    """List configured workflow"""
     settings = config_service.get_config()
     rh = settings.get('runninghub', {})
-    wid = rh.get('workflow_id', '')
-    return {"workflow_id": wid}
+    return {"workflow_id": rh.get('workflow_id', '')}
 
 @router.post("/test")
 async def test_connection():
@@ -90,5 +88,105 @@ async def test_connection():
         return {"status": "error", "message": data.get("msg", "Unknown")}
     except urllib.error.HTTPError as e:
         return {"status": "error", "message": f"HTTP {e.code}"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@router.get("/models")
+async def list_models():
+    """List all available models on RunningHub (latest per provider)"""
+    return {
+        "workflow_models": get_workflow_models(),
+        "standard_models": get_available_models(),
+        "note": "Standard Model API requires Enterprise key. Workflow models work with Plan A."
+    }
+
+@router.post("/generate")
+async def generate(request: Request):
+    """Generate via RunningHub — either ComfyUI workflow or standard model API"""
+    body = await request.json()
+    settings = config_service.get_config()
+    rh = settings.get('runninghub', {})
+    key = rh.get('api_key', '')
+    if not key:
+        raise HTTPException(400, "No RunningHub API key configured")
+    
+    gen_type = body.get('type', 'workflow')  # 'workflow' or 'standard'
+    
+    if gen_type == 'workflow':
+        # ComfyUI workflow execution
+        workflow_id = body.get('workflow_id', rh.get('workflow_id', ''))
+        if not workflow_id:
+            raise HTTPException(400, "No workflow_id configured")
+        
+        h = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "Host": "www.runninghub.ai"}
+        payload = {"apiKey": key, "workflowId": workflow_id, "addMetadata": False}
+        
+        # Add node overrides if provided
+        if body.get('nodeInfoList'):
+            payload['nodeInfoList'] = body['nodeInfoList']
+        
+        p = json.dumps(payload).encode()
+        req = urllib.request.Request(f"{RH_BASE}/task/openapi/create", data=p, headers=h)
+        try:
+            resp = urllib.request.urlopen(req, timeout=15)
+            d = json.loads(resp.read())
+            if d.get("data", {}).get("taskId"):
+                return {"status": "ok", "task_id": d["data"]["taskId"], "type": "workflow"}
+            return {"status": "error", "message": d.get("msg", "Unknown error")}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+    
+    elif gen_type == 'standard':
+        # Standard model API (Enterprise only)
+        endpoint = body.get('endpoint', '')
+        if not endpoint:
+            raise HTTPException(400, "No endpoint specified")
+        
+        h = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "Host": "www.runninghub.ai"}
+        payload = {"apiKey": key}
+        payload.update(body.get('params', {}))
+        
+        p = json.dumps(payload).encode()
+        req = urllib.request.Request(f"{RH_BASE}/openapi/v2/{endpoint}", data=p, headers=h)
+        try:
+            resp = urllib.request.urlopen(req, timeout=15)
+            d = json.loads(resp.read())
+            if d.get("taskId"):
+                return {"status": "ok", "task_id": d["taskId"], "type": "standard"}
+            return {"status": "error", "message": d.get("errorMessage", "Unknown error")}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+@router.get("/task/{task_id}")
+async def get_task_status(task_id: str):
+    """Get task status"""
+    settings = config_service.get_config()
+    rh = settings.get('runninghub', {})
+    key = rh.get('api_key', '')
+    if not key:
+        raise HTTPException(400, "No API key configured")
+    
+    h = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "Host": "www.runninghub.ai"}
+    
+    # Check status
+    p = json.dumps({"apiKey": key, "taskId": task_id}).encode()
+    req = urllib.request.Request(f"{RH_BASE}/task/openapi/status", data=p, headers=h)
+    try:
+        resp = urllib.request.urlopen(req, timeout=10)
+        d = json.loads(resp.read())
+        status = d.get("data", "RUNNING")
+        
+        result = {"status": status.lower()}
+        
+        if status == "SUCCESS":
+            # Get outputs
+            p2 = json.dumps({"apiKey": key, "taskId": task_id}).encode()
+            req2 = urllib.request.Request(f"{RH_BASE}/task/openapi/outputs", data=p2, headers=h)
+            resp2 = urllib.request.urlopen(req2, timeout=10)
+            d2 = json.loads(resp2.read())
+            outputs = d2.get("data", [])
+            result["outputs"] = [item.get("fileUrl", "") for item in outputs]
+        
+        return result
     except Exception as e:
         return {"status": "error", "message": str(e)}
