@@ -1,7 +1,7 @@
 import { useConfigs } from '@/contexts/configs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, ImageIcon, Menu, SettingsIcon, X } from 'lucide-react'
+import { ChevronLeft, HelpCircle, ImageIcon, Menu, SettingsIcon, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
@@ -10,6 +10,7 @@ import { LOGO_URL } from '@/constants'
 import LanguageSwitcher from './common/LanguageSwitcher'
 import { cn } from '@/lib/utils'
 import { UserMenu } from './auth/UserMenu'
+import { onboardingStore } from '@/hooks/useOnboarding'
 import { useState } from 'react'
 
 export default function TopMenu({
@@ -69,8 +70,17 @@ export default function TopMenu({
           size={'sm'}
           variant="ghost"
           onClick={() => setShowSettingsDialog(true)}
+          data-tour="settings"
         >
           <SettingsIcon size={30} />
+        </Button>
+        <Button
+          size={'sm'}
+          variant="ghost"
+          onClick={() => onboardingStore.getState().start()}
+          aria-label="Aide / Tour"
+        >
+          <HelpCircle size={18} />
         </Button>
         <LanguageSwitcher />
         <ThemeButton />
@@ -118,6 +128,18 @@ export default function TopMenu({
               >
                 <SettingsIcon size={20} />
                 {t('settings:title', 'Settings')}
+              </Button>
+              <Button
+                size={'sm'}
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  onboardingStore.getState().start()
+                  setMobileMenuOpen(false)
+                }}
+              >
+                <HelpCircle size={20} />
+                Tour d'aide
               </Button>
               <div className="flex items-center justify-between gap-2 px-1">
                 <LanguageSwitcher />

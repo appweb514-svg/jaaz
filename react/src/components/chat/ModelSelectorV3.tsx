@@ -241,6 +241,7 @@ const ModelSelectorV3: React.FC<ModelSelectorV3Props> = ({
         <Button
           size={'sm'}
           variant="outline"
+          data-tour="generation"
           className={`w-fit max-w-[40%] justify-between overflow-hidden ${autoMode
             ? 'bg-background border-border text-muted-foreground'
             : 'text-primary border-green-200 bg-green-50'

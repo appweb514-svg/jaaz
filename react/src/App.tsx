@@ -2,6 +2,7 @@
 import UpdateNotificationDialog from '@/components/common/UpdateNotificationDialog'
 import SettingsDialog from '@/components/settings/dialog'
 import { LoginDialog } from '@/components/auth/LoginDialog'
+import OnboardingTour from '@/components/onboarding/OnboardingTour'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { ConfigsProvider } from '@/contexts/configs'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -120,6 +121,9 @@ function App() {
 
               {/* Login Dialog */}
               <LoginDialog />
+
+              {/* Onboarding Tour */}
+              <OnboardingTour />
             </div>
           </ConfigsProvider>
         </AuthProvider>

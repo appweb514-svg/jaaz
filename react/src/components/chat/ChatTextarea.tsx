@@ -369,6 +369,7 @@ const ChatTextarea: React.FC<ChatTextareaProps> = ({
   return (
     <motion.div
       ref={dropAreaRef}
+      data-tour="chat"
       className={cn(
         'w-full flex flex-col items-center border border-primary/20 rounded-2xl p-3 hover:border-primary/40 transition-all duration-300 cursor-text gap-5 bg-background/80 backdrop-blur-xl relative',
         isFocused && 'border-primary/40',
