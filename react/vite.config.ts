@@ -35,6 +35,10 @@ export default defineConfig(({ mode }) => {
           target: `http://100.112.29.96:${PORT}`,
           changeOrigin: true,
         },
+        '/runninghub': {
+          target: `http://100.112.29.96:${PORT}`,
+          changeOrigin: true,
+        },
         '/socket.io': {
           target: `http://100.112.29.96:${PORT}`,
           ws: true,
@@ -96,6 +100,10 @@ export default defineConfig(({ mode }) => {
     config.server = config.server || {}
     config.server.proxy = {
       '/api': {
+        target: `http://100.112.29.96:${PORT}`,
+        changeOrigin: true,
+      },
+      '/runninghub': {
         target: `http://100.112.29.96:${PORT}`,
         changeOrigin: true,
       },
