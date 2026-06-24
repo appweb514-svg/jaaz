@@ -48,6 +48,14 @@ export const PROVIDER_NAME_MAPPING: {
     name: 'RunningHub',
     icon: 'https://www.runninghub.ai/favicon.ico',
   },
+  'opencode-zen': {
+    name: 'OpenCode Zen',
+    icon: 'https://opencode.ai/favicon.ico',
+  },
+  'opencode-go': {
+    name: 'OpenCode Go',
+    icon: 'https://opencode.ai/favicon.ico',
+  },
 }
 
 // Tool call name mapping

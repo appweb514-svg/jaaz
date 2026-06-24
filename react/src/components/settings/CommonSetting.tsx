@@ -5,6 +5,7 @@ import { PROVIDER_NAME_MAPPING } from '@/constants'
 import { LLMConfig } from '@/types/types'
 import { useTranslation } from 'react-i18next'
 import AddModelsList from './AddModelsList'
+import FetchModelsButton from './FetchModelsButton'
 import { Trash2 } from 'lucide-react'
 
 interface CommonSettingProps {
@@ -123,6 +124,15 @@ export default function CommonSetting({
           {t('settings:provider.apiKeyDescription')}
         </p>
       </div>
+
+      {/* Fetch Models Button - for providers with model_fetch_url */}
+      {config.model_fetch_url && (
+        <FetchModelsButton
+          providerKey={providerKey}
+          fetchUrl={config.model_fetch_url}
+          onModelsChange={handleModelsChange}
+        />
+      )}
 
       {/* Models Configuration - only for custom providers */}
       {providerKey !== 'ollama' && (

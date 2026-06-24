@@ -20,6 +20,9 @@ class ProviderConfig(TypedDict, total=False):
     max_tokens: int
     models: Dict[str, ModelConfig]
     is_custom: Optional[bool]
+    enabled: Optional[bool]
+    workflow_id: Optional[str]
+    model_fetch_url: Optional[str]
 
 
 AppConfig = Dict[str, ProviderConfig]
@@ -69,6 +72,20 @@ DEFAULT_PROVIDERS_CONFIG: AppConfig = {
         'url': 'https://api.openai.com/v1/',
         'api_key': '',
         'max_tokens': 8192,
+    },
+    'opencode-zen': {
+        'models': {},
+        'url': 'https://opencode.ai/zen/v1',
+        'api_key': '',
+        'max_tokens': 65536,
+        'model_fetch_url': 'https://opencode.ai/zen/v1/models',
+    },
+    'opencode-go': {
+        'models': {},
+        'url': 'https://opencode.ai/zen/go/v1',
+        'api_key': '',
+        'max_tokens': 65536,
+        'model_fetch_url': 'https://opencode.ai/zen/go/v1/models',
     },
 
 }

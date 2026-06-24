@@ -29,20 +29,18 @@ const SettingsDialog = () => {
       <CommonDialogContent
         open={open}
         transformPerspective={6000}
-        className="flex flex-col p-0 gap-0 w-[95vw] sm:w-full max-w-2xl h-[90vh] max-h-[100vh] rounded-lg sm:rounded-none! border shadow-lg overflow-hidden sm:border-none! sm:shadow-none!"
+        className="flex flex-col p-0 gap-0 w-[95vw] sm:w-full max-w-2xl h-[100vh] max-h-[100vh] rounded-lg sm:rounded-none! border shadow-lg overflow-hidden sm:border-none! sm:shadow-none!"
       >
-        <SidebarProvider className="h-[calc(100vh-60px)]! min-h-[calc(100vh-60px)]! flex-1 relative">
+        <div className="flex flex-row flex-1 overflow-hidden">
           <SettingSidebar
             current={current}
             setCurrent={setCurrent}
             onClose={() => setShowSettingsDialog(false)}
           />
-          <div className="flex flex-col flex-1 min-h-0">
-            <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
-              {renderContent()}
-            </div>
+          <div className="flex-1 overflow-y-auto pr-2 scrollbar-thin">
+            {renderContent()}
           </div>
-        </SidebarProvider>
+        </div>
       </CommonDialogContent>
     </Dialog>
   )

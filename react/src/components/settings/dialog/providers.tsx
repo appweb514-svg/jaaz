@@ -79,47 +79,49 @@ const SettingProviders = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 w-full sm:pb-0 pb-10 relative">
-      {isLoading && (
-        <div className="flex justify-center items-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-zinc-500"></div>
-        </div>
-      )}
-
-      {!isLoading &&
-        Object.keys(providers).map((key, index) => (
-          <div key={key} className="w-full">
-            {key === 'jaaz' ? (
-              <JaazSetting
-                config={providers[key]}
-                onConfigChange={handleConfigChange}
-              />
-            ) : key === 'comfyui' ? (
-              <ComfyuiSetting
-                config={providers[key]}
-                onConfigChange={handleConfigChange}
-              />
-            ) : key === 'runninghub' ? (
-              <RunninghubSetting
-                config={providers[key]}
-                onConfigChange={handleConfigChange}
-              />
-            ) : (
-              <CommonSetting
-                providerKey={key}
-                config={providers[key]}
-                onConfigChange={handleConfigChange}
-                onDeleteProvider={handleDeleteProvider}
-              />
-            )}
-
-            {index !== Object.keys(providers).length - 1 && (
-              <div className="my-6 border-t bg-border" />
-            )}
+    <>
+      <div className="flex flex-col items-center justify-center p-4 w-full pb-10 relative flex-1">
+        {isLoading && (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-zinc-500"></div>
           </div>
-        ))}
+        )}
 
-      <div className="flex sticky bottom-0 gap-1 px-1 py-2 w-full sm:w-auto bg-background">
+        {!isLoading &&
+          Object.keys(providers).map((key, index) => (
+            <div key={key} className="w-full">
+              {key === 'jaaz' ? (
+                <JaazSetting
+                  config={providers[key]}
+                  onConfigChange={handleConfigChange}
+                />
+              ) : key === 'comfyui' ? (
+                <ComfyuiSetting
+                  config={providers[key]}
+                  onConfigChange={handleConfigChange}
+                />
+              ) : key === 'runninghub' ? (
+                <RunninghubSetting
+                  config={providers[key]}
+                  onConfigChange={handleConfigChange}
+                />
+              ) : (
+                <CommonSetting
+                  providerKey={key}
+                  config={providers[key]}
+                  onConfigChange={handleConfigChange}
+                  onDeleteProvider={handleDeleteProvider}
+                />
+              )}
+
+              {index !== Object.keys(providers).length - 1 && (
+                <div className="my-6 border-t bg-border" />
+              )}
+            </div>
+          ))}
+      </div>
+
+      <div className="flex gap-1 px-1 py-2 w-full sm:w-auto bg-background border-t">
         <Button onClick={handleSave} className="w-1/2 sm:w-auto" size="lg">
           <Save className="mr-2 h-6 w-6" /> {t('settings:saveSettings')}
         </Button>
@@ -144,7 +146,7 @@ const SettingProviders = () => {
         onOpenChange={setIsAddProviderDialogOpen}
         onSave={handleAddProvider}
       />
-    </div>
+    </>
   )
 }
 
