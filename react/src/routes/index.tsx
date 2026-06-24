@@ -46,7 +46,7 @@ function Home() {
       <ScrollArea className='h-full'>
         <TopMenu />
 
-        <div className='relative flex flex-col items-center justify-center h-fit min-h-[calc(100vh-460px)] pt-[60px] px-4 sm:px-6 md:px-8 select-none'>
+        <div className='relative flex flex-col items-center justify-center h-fit min-h-[50vh] md:min-h-[calc(100vh-460px)] pt-8 md:pt-[60px] px-4 sm:px-6 md:px-8 select-none'>
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
