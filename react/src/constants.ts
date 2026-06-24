@@ -2,7 +2,7 @@ import type { LLMConfig, ToolCallFunctionName } from '@/types/types'
 
 // API Configuration
 export const BASE_API_URL =
-  import.meta.env.VITE_JAAZ_BASE_API_URL || 'https://jaaz.app'
+  import.meta.env.VITE_JAAZ_BASE_API_URL || 'http://localhost:5174'
 
 export const PROVIDER_NAME_MAPPING: {
   [key: string]: { name: string; icon: string }
@@ -39,6 +39,10 @@ export const PROVIDER_NAME_MAPPING: {
   comfyui: {
     name: 'ComfyUI',
     icon: 'https://framerusercontent.com/images/3cNQMWKzIhIrQ5KErBm7dSmbd2w.png',
+  },
+  openrouter: {
+    name: 'OpenRouter',
+    icon: 'https://openrouter.ai/favicon.ico',
   },
 }
 

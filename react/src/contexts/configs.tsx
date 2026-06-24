@@ -75,9 +75,10 @@ export const ConfigsProvider = ({
     setSelectedTools(currentSelectedTools)
 
     // 如果文本模型或工具模型为空，则显示登录对话框
-    if (llmModels.length === 0 || toolList.length === 0) {
-      setShowLoginDialog(true)
-    }
+    // Disabled for local mode - uncomment for production
+    // if (llmModels.length === 0 || toolList.length === 0) {
+    //   setShowLoginDialog(true)
+    // }
   }, [
     modelList,
     setSelectedTools,
