@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html><head><title>RunningHub Proxy</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-radius:50%;border-top-color:#a855f7;animation:spin .6s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body class="bg-gray-950 text-white min-h-screen p-4 md:p-6">
+<div class="max-w-4xl mx-auto">
+<div class="flex items-center justify-between mb-6">
+<div><h1 class="text-3xl font-bold">RunningHub Proxy</h1>
+<p class="text-gray-400 text-sm mt-1">Multi-workflow ComfyUI proxy</p></div>
+<div id="statusBadge" class="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-400">...</div>
+</div>
+<div class="grid md:grid-cols-3 gap-6">
+<div class="md:col-span-2 bg-gray-900 rounded-xl p-4 border border-gray-800">
+<div class="flex items-center justify-between mb-4">
+<h2 class="font-semibold text-lg">Workflows</h2>
+<button id="addBtn" class="bg-purple-600 hover:bg-purple-700 px-3 py-1.5 rounded-lg text-sm font-medium">+ Ajouter</button>
+</div>
+<div id="wflist" class="space-y-2 min-h-[100px]"><p class="text-center text-gray-500 py-8 text-sm">Chargement...</p></div>
+</div>
+<div class="bg-gray-900 rounded-xl p-4 border border-gray-800">
+<h2 class="font-semibold text-lg mb-4">Generation</h2>
+<div class="mb-4">
+<label class="text-xs text-gray-400 mb-1 block">Workflow</label>
+<select id="wfSelect" class="w-full bg-gray-800 rounded-lg p-2.5 text-sm border border-gray-700"></select>
+</div>
+<div class="mb-4">
+<label class="text-xs text-gray-400 mb-1 block">Prompt</label>
+<textarea id="promptInput" rows="3" class="w-full bg-gray-800 rounded-lg p-2.5 text-sm border border-gray-700" placeholder="Un chat orange..."></textarea>
+</div>
+<button id="genBtn" class="w-full bg-purple-600 hover:bg-purple-700 px-4 py-2.5 rounded-lg font-medium disabled:opacity-50">Lancer</button>
+<div id="result" class="mt-4"></div>
+</div>
+</div>
+</div>
+<div id="modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
+<div class="bg-gray-900 rounded-xl p-6 w-full max-w-md border border-gray-700 mx-4">
+<h3 class="text-lg font-semibold mb-4">Ajouter un workflow</h3>
+<div class="mb-3">
+<label class="text-xs text-gray-400 mb-1 block">ID du workflow</label>
+<input id="modWid" class="w-full bg-gray-800 rounded-lg p-2.5 text-sm border border-gray-700" placeholder="ID">
+</div>
+<div class="mb-4">
+<label class="text-xs text-gray-400 mb-1 block">Nom</label>
+<input id="modName" class="w-full bg-gray-800 rounded-lg p-2.5 text-sm border border-gray-700" placeholder="LTX 2.3">
+</div>
+<div class="flex gap-2">
+<button id="modalAddBtn" class="flex-1 bg-purple-600 hover:bg-purple-700 px-4 py-2.5 rounded-lg font-medium">Ajouter</button>
+<button id="modalCancelBtn" class="px-4 py-2.5 rounded-lg bg-gray-800 hover:bg-gray-700">Annuler</button>
+</div>
+<div id="addErr" class="text-red-400 text-sm mt-2 hidden"></div>
+</div>
+</div>
+<script>
+(function() {
+"use strict";
+console.log('RunningHub Proxy JS loaded');
+
+function api(url, opts) {
+    return fetch(url, opts).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+    });
+}
+
+function load() {
+    api('/api/workflows').then(function(d) {
+        var wf = d.workflows || {};
+        var ids = Object.keys(wf);
+        var list = document.getElementById('wflist');
+        var sel = document.getElementById('wfSelect');
+        var html = '';
+        if (ids.length === 0) {
+            html = '<p class="text-center text-gray-500 py-8 text-sm">Aucun workflow. Ajoutez-en un.</p>';
+            sel.innerHTML = '<option value="">-- Aucun --</option>';
+        } else {
+            for (var i = 0; i < ids.length; i++) {
+                var id = ids[i];
+                var w = wf[id];
+                var active = (id === d.current);
+                html += '<div class="flex items-center justify-between bg-gray-800/50 rounded-lg px-4 py-3' + (active ? ' ring-1 ring-purple-500/50' : '') + '">';
+                html += '<div class="flex items-center gap-3">';
+                html += '<div class="w-2 h-2 rounded-full ' + (active ? 'bg-purple-500' : 'bg-gray-600') + '"></div>';
+                html += '<div><div class="text-sm font-medium">' + w.name + '</div>';
+                html += '<div class="text-xs text-gray-500">' + id.substr(0, 16) + '... | ' + w.nodes + ' nodes</div></div></div>';
+                html += '<div class="flex gap-2">';
+                if (active) {
+                    html += '<span class="text-xs text-purple-400">Actif</span>';
+                } else {
+                    html += '<button class="text-xs text-purple-400 use-btn" data-id="' + id + '">Utiliser</button>';
+                }
+                html += '<button class="text-xs text-red-400 del-btn" data-id="' + id + '">x</button>';
+                html += '</div></div>';
+            }
+            list.innerHTML = html;
+            var selHtml = '';
+            for (var i = 0; i < ids.length; i++) {
+                var id = ids[i];
+                selHtml += '<option value="' + id + '"' + (id === d.current ? ' selected' : '') + '>' + (wf[id].name || id) + '</option>';
+            }
+            sel.innerHTML = selHtml;
+
+            document.querySelectorAll('.use-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    doSwitch(this.getAttribute('data-id'));
+                });
+            });
+            document.querySelectorAll('.del-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    doDelete(this.getAttribute('data-id'));
+                });
+            });
+        }
+        api('/api/prompt').then(function(sd) {
+            var badge = document.getElementById('statusBadge');
+            if (sd.workflows_count > 0) {
+                badge.textContent = 'OK ' + sd.workflows_count + ' wf';
+                badge.className = 'text-xs px-3 py-1 rounded-full bg-green-900/50 text-green-400';
+            } else if (sd.key_configured) {
+                badge.textContent = 'Pas de workflow';
+                badge.className = 'text-xs px-3 py-1 rounded-full bg-yellow-900/50 text-yellow-400';
+            } else {
+                badge.textContent = 'Pas de cle';
+                badge.className = 'text-xs px-3 py-1 rounded-full bg-red-900/50 text-red-400';
+            }
+        });
+    }).catch(function(err) {
+        document.getElementById('wflist').innerHTML = '<p class="text-center text-red-400 py-8 text-sm">Erreur: ' + err.message + '</p>';
+    });
+}
+
+function doSwitch(id) {
+    api('/api/workflows/switch', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({workflow_id:id})}).then(load);
+}
+
+function doDelete(id) {
+    if (!confirm('Supprimer ce workflow ?')) return;
+    api('/api/workflows/' + id, {method:'DELETE'}).then(load);
+}
+
+document.getElementById('addBtn').addEventListener('click', function() {
+    document.getElementById('modal').classList.remove('hidden');
+    document.getElementById('modal').classList.add('flex');
+});
+document.getElementById('modalCancelBtn').addEventListener('click', function() {
+    document.getElementById('modal').classList.add('hidden');
+    document.getElementById('modal').classList.remove('flex');
+});
+document.getElementById('modalAddBtn').addEventListener('click', function() {
+    var wid = document.getElementById('modWid').value;
+    var name = document.getElementById('modName').value;
+    var err = document.getElementById('addErr');
+    if (!wid) { err.textContent = 'ID requis'; err.classList.remove('hidden'); return; }
+    err.classList.add('hidden');
+    var btn = document.getElementById('modalAddBtn');
+    btn.disabled = true; btn.textContent = '...';
+    api('/api/workflows/add', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({workflow_id:wid, name:name})}).then(function() {
+        btn.disabled = false; btn.textContent = 'Ajouter';
+        document.getElementById('modal').classList.add('hidden');
+        document.getElementById('modal').classList.remove('flex');
+        document.getElementById('modWid').value = '';
+        document.getElementById('modName').value = '';
+        load();
+    }).catch(function(e) {
+        btn.disabled = false; btn.textContent = 'Ajouter';
+        err.textContent = 'Workflow non trouve sur RH';
+        err.classList.remove('hidden');
+    });
+});
+document.getElementById('genBtn').addEventListener('click', function() {
+    var wf = document.getElementById('wfSelect').value;
+    if (!wf) { document.getElementById('result').innerHTML = '<p class="text-yellow-400 text-sm">Selectionnez un workflow</p>'; return; }
+    var btn = document.getElementById('genBtn');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+    api('/prompt', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:{}})}).then(function(d) {
+        btn.disabled = false; btn.innerHTML = 'Lancer';
+        if (d.prompt_id) {
+            document.getElementById('result').innerHTML = '<div class="bg-gray-800 rounded p-3"><p class="text-green-400 text-sm">Envoye</p><p class="text-xs text-gray-400 mt-1">' + d.prompt_id + '</p></div>';
+        } else {
+            document.getElementById('result').innerHTML = '<p class="text-red-400 text-sm">Erreur</p>';
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', load);
+console.log('RunningHub Proxy ready');
+})();
+</script></body></html>
