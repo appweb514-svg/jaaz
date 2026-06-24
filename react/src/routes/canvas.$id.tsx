@@ -82,7 +82,7 @@ function Canvas() {
           <ResizablePanel className='relative' defaultSize={75}>
             <div className='w-full h-full'>
               {isLoading ? (
-                <div className='flex-1 flex-grow px-4 bg-accent w-[24%] absolute right-0'>
+                <div className='flex-1 flex-grow px-2 sm:px-4 bg-accent w-[30%] sm:w-[24%] absolute right-0'>
                   <div className='flex items-center justify-center h-full'>
                     <Loader2 className='w-4 h-4 animate-spin' />
                   </div>
