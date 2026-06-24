@@ -48,6 +48,10 @@ export const PROVIDER_NAME_MAPPING: {
     name: 'RunningHub',
     icon: 'https://www.runninghub.ai/favicon.ico',
   },
+  commandcode: {
+    name: 'CommandCode',
+    icon: 'https://raw.githubusercontent.com/nicepkg/command-code/main/public/logo.svg',
+  },
   'opencode-zen': {
     name: 'OpenCode Zen',
     icon: 'https://opencode.ai/favicon.ico',
