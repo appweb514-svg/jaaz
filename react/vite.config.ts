@@ -29,7 +29,18 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5174,
-      proxy: {},
+      host: '100.112.29.96',
+      proxy: {
+        '/api': {
+          target: `http://100.112.29.96:${PORT}`,
+          changeOrigin: true,
+        },
+        '/socket.io': {
+          target: `http://100.112.29.96:${PORT}`,
+          ws: true,
+          changeOrigin: true,
+        },
+      },
     },
   }
 
@@ -85,15 +96,13 @@ export default defineConfig(({ mode }) => {
     config.server = config.server || {}
     config.server.proxy = {
       '/api': {
-        target: `http://127.0.0.1:${PORT}`,
+        target: `http://100.112.29.96:${PORT}`,
         changeOrigin: true,
-        // Uncomment the following if you want to remove the /api prefix when forwarding to Flask
-        // rewrite: (path) => path.replace(/^\/api/, '')
       },
-      // Also proxy WebSocket connections
-      '/ws': {
-        target: `ws://127.0.0.1:${PORT}`,
+      '/socket.io': {
+        target: `http://100.112.29.96:${PORT}`,
         ws: true,
+        changeOrigin: true,
       },
     }
   }

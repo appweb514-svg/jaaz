@@ -68,7 +68,7 @@ async def get_models() -> list[ModelInfo]:
             })
 
     for provider in config.keys():
-        if provider in ['ollama']:
+        if provider in ['ollama', 'runninghub']:
             continue
 
         provider_config = config[provider]

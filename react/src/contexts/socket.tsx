@@ -42,7 +42,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         if (!socketManagerRef.current) {
           socketManagerRef.current = new SocketIOManager({
             serverUrl: process.env.NODE_ENV === 'development'
-              ? 'http://localhost:57988'
+              ? undefined  // Use Vite proxy
               : window.location.origin,
             autoConnect: false
           })
