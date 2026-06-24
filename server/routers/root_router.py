@@ -98,6 +98,8 @@ async def get_models() -> list[ModelInfo]:
 async def list_tools() -> list[ToolInfoJson]:
     config = config_service.get_config()
     res: list[ToolInfoJson] = []
+    
+    # MCP tools from tool_service
     for tool_id, tool_info in tool_service.tools.items():
         if tool_info.get('provider') == 'system':
             continue
@@ -112,20 +114,33 @@ async def list_tools() -> list[ToolInfoJson]:
             'display_name': tool_info.get('display_name', ''),
         })
 
-    # Handle ComfyUI models separately
-    # comfyui_config = config.get('comfyui', {})
-    # comfyui_url = comfyui_config.get('url', '').strip()
-    # comfyui_config_models = comfyui_config.get('models', {})
-    # if comfyui_url:
-    #     comfyui_models = await get_comfyui_model_list(comfyui_url)
-    #     for comfyui_model in comfyui_models:
-    #         if comfyui_model in comfyui_config_models:
-    #             res.append({
-    #                 'provider': 'comfyui',
-    #                 'model': comfyui_model,
-    #                 'url': comfyui_url,
-    #                 'type': 'image'
-    #             })
+    # RunningHub generation models — used by the frontend ModelSelector
+    rh_config = config.get('runninghub', {})
+    rh_enabled = rh_config.get('enabled', False)
+    rh_key = rh_config.get('api_key', '').strip()
+    rh_workflow = rh_config.get('workflow_id', '')
+    
+    if rh_key and rh_enabled:
+        from tools.rh_models import STANDARD_MODELS_AVAILABLE, RH_MODELS
+        # Workflow models (ComfyUI-based, works with Plan A)
+        for cat, models_dict in RH_MODELS.items():
+            for slug, info in models_dict.items():
+                res.append({
+                    'id': f'rh_{slug}',
+                    'provider': 'runninghub',
+                    'type': cat,
+                    'display_name': f'{slug} 🎬',
+                })
+        # Standard API models (listed for reference, Enterprise-only)
+        for cat, providers in STANDARD_MODELS_AVAILABLE.items():
+            for provider_name, models_list in providers.items():
+                for m in models_list:
+                    res.append({
+                        'id': f'rh_std_{m["name"].lower().replace(" ", "-")}',
+                        'provider': 'runninghub',
+                        'type': cat,
+                        'display_name': f'{m["name"]} ({provider_name}) {cat == "video" and "🎥" or cat == "image" and "🎨" or cat == "audio" and "🎵" or "🧊"}',
+                    })
 
     return res
 

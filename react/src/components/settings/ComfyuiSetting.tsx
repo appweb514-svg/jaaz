@@ -337,6 +337,9 @@ export default function ComfyuiSetting({
         <p className="text-xs text-gray-500">
           {t('settings:comfyui.urlDescription')}
         </p>
+        <p className="text-xs text-purple-500">
+          ↳ Proxy RunningHub : http://100.112.29.96:8199 (port 8199)
+        </p>
         {comfyUrl && !isValidUrl(comfyUrl) && (
           <p className="text-xs text-red-500 mt-1">
             {t('settings:comfyui.invalidUrl')}

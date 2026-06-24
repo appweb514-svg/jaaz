@@ -44,6 +44,10 @@ export const PROVIDER_NAME_MAPPING: {
     name: 'OpenRouter',
     icon: 'https://openrouter.ai/favicon.ico',
   },
+  runninghub: {
+    name: 'RunningHub',
+    icon: 'https://www.runninghub.ai/favicon.ico',
+  },
 }
 
 // Tool call name mapping

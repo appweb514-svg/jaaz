@@ -1,5 +1,6 @@
 import AddProviderDialog from '@/components/settings/AddProviderDialog'
 import ComfyuiSetting from '@/components/settings/ComfyuiSetting'
+import RunninghubSetting from '@/components/settings/RunninghubSetting'
 import CommonSetting from '@/components/settings/CommonSetting'
 import JaazSetting from '@/components/settings/JaazSetting'
 import { Button } from '@/components/ui/button'
@@ -95,6 +96,11 @@ const SettingProviders = () => {
               />
             ) : key === 'comfyui' ? (
               <ComfyuiSetting
+                config={providers[key]}
+                onConfigChange={handleConfigChange}
+              />
+            ) : key === 'runninghub' ? (
+              <RunninghubSetting
                 config={providers[key]}
                 onConfigChange={handleConfigChange}
               />

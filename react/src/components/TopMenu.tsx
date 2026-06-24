@@ -11,6 +11,7 @@ import LanguageSwitcher from './common/LanguageSwitcher'
 import { cn } from '@/lib/utils'
 import { UserMenu } from './auth/UserMenu'
 import { onboardingStore } from '@/hooks/useOnboarding'
+import { useRHCredits } from '@/hooks/useRHCredits'
 import { useState } from 'react'
 
 export default function TopMenu({
@@ -25,6 +26,7 @@ export default function TopMenu({
   const navigate = useNavigate()
   const { setShowSettingsDialog } = useConfigs()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { credits } = useRHCredits()
 
   return (
     <motion.div
@@ -74,6 +76,15 @@ export default function TopMenu({
         >
           <SettingsIcon size={30} />
         </Button>
+        {credits.connected && (
+          <div
+            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-400 bg-purple-500/10 rounded-full border border-purple-500/20"
+            title={`Wallet: $${credits.wallet}`}
+          >
+            <span>🪙</span>
+            <span>{credits.coins.toLocaleString()}</span>
+          </div>
+        )}
         <Button
           size={'sm'}
           variant="ghost"

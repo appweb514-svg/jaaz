@@ -10,6 +10,32 @@ router = APIRouter(prefix="/runninghub", tags=["runninghub"])
 
 RH_BASE = "https://www.runninghub.ai"
 
+@router.get("/credits")
+async def get_credits():
+    """Get RunningHub credits (coins + wallet balance) in real-time"""
+    settings = config_service.get_config()
+    rh = settings.get('runninghub', {})
+    key = rh.get('api_key', '')
+    if not key:
+        return {"coins": 0, "wallet": "0.00", "connected": False}
+    
+    try:
+        h = {"Authorization": f"Bearer {key}", "Content-Type": "application/json", "Host": "www.runninghub.ai"}
+        p = json.dumps({"apiKey": key}).encode()
+        req = urllib.request.Request(f"{RH_BASE}/uc/openapi/accountStatus", data=p, headers=h)
+        resp = urllib.request.urlopen(req, timeout=10)
+        data = json.loads(resp.read())
+        if data.get("code") == 0:
+            acct = data["data"]
+            return {
+                "coins": acct.get("remainCoins", 0),
+                "wallet": acct.get("remainMoney", "0.00"),
+                "connected": True
+            }
+        return {"coins": 0, "wallet": "0.00", "connected": False, "error": data.get("msg", "")}
+    except Exception as e:
+        return {"coins": 0, "wallet": "0.00", "connected": False, "error": str(e)}
+
 @router.get("/status")
 async def get_status():
     """Get RunningHub connection status"""
