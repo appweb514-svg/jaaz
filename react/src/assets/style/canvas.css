@@ -2,6 +2,21 @@
   display: none !important;
 }
 
+/* On mobile, show a minimal bottom bar for zoom controls */
+@media (max-width: 767px) {
+  .excalidraw .App-bottom-bar {
+    display: flex !important;
+    bottom: 60px !important;
+  }
+  .excalidraw .layer-ui__wrapper__footer.App-menu.App-menu_bottom {
+    display: flex !important;
+    bottom: 60px !important;
+  }
+  .scroll-back-to-content {
+    bottom: 120px !important;
+  }
+}
+
 /* Conditionally hide left toolbar panel when embeddable is selected */
 .excalidraw.hide-left-panel .App-menu__left {
   display: none !important;

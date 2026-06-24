@@ -76,47 +76,56 @@ function Canvas() {
           onNameSave={handleNameSave}
         />
         {/* Mobile: tab-based layout (<md) */}
-        <div className='flex flex-col w-full h-[calc(100vh-32px)] md:hidden'>
+        <div className='flex flex-col w-full h-[calc(100dvh-32px)] md:hidden'>
           {/* Tab bar */}
           <div className='flex border-b border-border bg-background sticky top-0 z-10'>
             <button
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
                 activeTab === 'canvas'
                   ? 'border-b-2 border-primary text-foreground'
                   : 'text-muted-foreground'
               }`}
               onClick={() => setActiveTab('canvas')}
             >
-              Canvas
+              🎨 Canvas
             </button>
             <button
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
                 activeTab === 'chat'
                   ? 'border-b-2 border-primary text-foreground'
                   : 'text-muted-foreground'
               }`}
               onClick={() => setActiveTab('chat')}
             >
-              Chat
+              💬 Chat
             </button>
           </div>
           <div className='flex-1 relative overflow-hidden'>
             {activeTab === 'canvas' ? (
-              <div className='w-full h-full'>
+              <div className='w-full h-full relative'>
                 {isLoading ? (
                   <div className='flex items-center justify-center h-full'>
                     <Loader2 className='w-4 h-4 animate-spin' />
                   </div>
-                ) : (
-                  <div className='relative w-full h-full'>
-                    <CanvasExcali canvasId={id} initialData={canvas?.data} />
-                    <CanvasMenu />
-                    <CanvasPopbarWrapper />
+                ) : error ? (
+                  <div className='flex flex-col items-center justify-center h-full gap-4 p-4'>
+                    <p className='text-red-500 text-sm text-center'>Erreur de chargement du canevas</p>
+                    <button 
+                      className='px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg'
+                      onClick={() => window.location.reload()}
+                    >
+                      Recharger
+                    </button>
                   </div>
+                ) : (
+                  <>
+                    <CanvasExcali canvasId={id} initialData={canvas?.data} />
+                    <CanvasPopbarWrapper />
+                  </>
                 )}
               </div>
             ) : (
-              <div className='flex-1 flex-grow bg-accent/50 w-full h-full overflow-y-auto'>
+              <div className='w-full h-full overflow-y-auto bg-background'>
                 <ChatInterface
                   canvasId={id}
                   sessionList={sessionList}
@@ -134,13 +143,21 @@ function Canvas() {
           className='w-full h-screen hidden md:flex'
           autoSaveId='jaaz-chat-panel'
         >
-          <ResizablePanel className='relative' defaultSize={75}>
-            <div className='w-full h-full'>
+          <ResizablePanel defaultSize={75}>
+            <div className='w-full h-full relative'>
               {isLoading ? (
-                <div className='flex-1 flex-grow px-2 sm:px-4 bg-accent w-[30%] sm:w-[24%] absolute right-0'>
-                  <div className='flex items-center justify-center h-full'>
-                    <Loader2 className='w-4 h-4 animate-spin' />
-                  </div>
+                <div className='flex items-center justify-center h-full'>
+                  <Loader2 className='w-4 h-4 animate-spin' />
+                </div>
+              ) : error ? (
+                <div className='flex flex-col items-center justify-center h-full gap-4 p-4'>
+                  <p className='text-red-500 text-sm text-center'>Erreur de chargement du canevas</p>
+                  <button 
+                    className='px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg'
+                    onClick={() => window.location.reload()}
+                  >
+                    Recharger
+                  </button>
                 </div>
               ) : (
                 <div className='relative w-full h-full'>
