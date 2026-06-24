@@ -11,12 +11,13 @@ import { Session } from '@/types/types'
 import { createFileRoute, useParams, useSearch } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export const Route = createFileRoute('/canvas/$id')({
   component: Canvas,
 })
 
-function Canvas() {
+function CanvasContent() {
   const { id } = useParams({ from: '/canvas/$id' })
   const [canvas, setCanvas] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -24,7 +25,7 @@ function Canvas() {
   const [canvasName, setCanvasName] = useState('')
   const [sessionList, setSessionList] = useState<Session[]>([])
   const [activeTab, setActiveTab] = useState<'canvas' | 'chat'>('canvas')
-  // initialVideos removed - using native Excalidraw embeddable elements instead
+  const isMobile = useIsMobile()
   const search = useSearch({ from: '/canvas/$id' }) as {
     sessionId: string
   }
@@ -41,7 +42,6 @@ function Canvas() {
           setCanvas(data)
           setCanvasName(data.name)
           setSessionList(data.sessions)
-          // Video elements now handled by native Excalidraw embeddable elements
         }
       } catch (err) {
         if (mounted) {
@@ -66,113 +66,70 @@ function Canvas() {
     await renameCanvas(id, canvasName)
   }
 
-  return (
-    <CanvasProvider>
-      <div className='flex flex-col w-full h-screen'>
+  // Shared loading/error state
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center h-full'>
+        <Loader2 className='w-4 h-4 animate-spin' />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className='flex flex-col items-center justify-center h-full gap-4 p-4'>
+        <p className='text-red-500 text-sm text-center'>Erreur de chargement du canevas</p>
+        <button 
+          className='px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg'
+          onClick={() => window.location.reload()}
+        >
+          Recharger
+        </button>
+      </div>
+    )
+  }
+
+  // Mobile layout
+  if (isMobile) {
+    return (
+      <div className='flex flex-col w-full h-full'>
         <CanvasHeader
           canvasName={canvasName}
           canvasId={id}
           onNameChange={setCanvasName}
           onNameSave={handleNameSave}
         />
-        {/* Mobile: tab-based layout (<md) */}
-        <div className='flex flex-col w-full h-[calc(100dvh-32px)] md:hidden'>
-          {/* Tab bar */}
-          <div className='flex border-b border-border bg-background sticky top-0 z-10'>
-            <button
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'canvas'
-                  ? 'border-b-2 border-primary text-foreground'
-                  : 'text-muted-foreground'
-              }`}
-              onClick={() => setActiveTab('canvas')}
-            >
-              🎨 Canvas
-            </button>
-            <button
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === 'chat'
-                  ? 'border-b-2 border-primary text-foreground'
-                  : 'text-muted-foreground'
-              }`}
-              onClick={() => setActiveTab('chat')}
-            >
-              💬 Chat
-            </button>
-          </div>
-          <div className='flex-1 relative overflow-hidden'>
-            {activeTab === 'canvas' ? (
-              <div className='w-full h-full relative'>
-                {isLoading ? (
-                  <div className='flex items-center justify-center h-full'>
-                    <Loader2 className='w-4 h-4 animate-spin' />
-                  </div>
-                ) : error ? (
-                  <div className='flex flex-col items-center justify-center h-full gap-4 p-4'>
-                    <p className='text-red-500 text-sm text-center'>Erreur de chargement du canevas</p>
-                    <button 
-                      className='px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg'
-                      onClick={() => window.location.reload()}
-                    >
-                      Recharger
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <CanvasExcali canvasId={id} initialData={canvas?.data} />
-                    <CanvasPopbarWrapper />
-                  </>
-                )}
-              </div>
-            ) : (
-              <div className='w-full h-full overflow-y-auto bg-background'>
-                <ChatInterface
-                  canvasId={id}
-                  sessionList={sessionList}
-                  setSessionList={setSessionList}
-                  sessionId={searchSessionId}
-                />
-              </div>
-            )}
-          </div>
+        {/* Tab bar */}
+        <div className='flex border-b border-border bg-background sticky top-0 z-10'>
+          <button
+            className={`flex-1 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'canvas'
+                ? 'border-b-2 border-primary text-foreground'
+                : 'text-muted-foreground'
+            }`}
+            onClick={() => setActiveTab('canvas')}
+          >
+            🎨 Canvas
+          </button>
+          <button
+            className={`flex-1 py-3 text-sm font-medium transition-colors ${
+              activeTab === 'chat'
+                ? 'border-b-2 border-primary text-foreground'
+                : 'text-muted-foreground'
+            }`}
+            onClick={() => setActiveTab('chat')}
+          >
+            💬 Chat
+          </button>
         </div>
-
-        {/* Desktop: resizable panels (>=md) */}
-        <ResizablePanelGroup
-          direction='horizontal'
-          className='w-full h-screen hidden md:flex'
-          autoSaveId='jaaz-chat-panel'
-        >
-          <ResizablePanel defaultSize={75}>
+        <div className='flex-1 relative overflow-hidden'>
+          {activeTab === 'canvas' ? (
             <div className='w-full h-full relative'>
-              {isLoading ? (
-                <div className='flex items-center justify-center h-full'>
-                  <Loader2 className='w-4 h-4 animate-spin' />
-                </div>
-              ) : error ? (
-                <div className='flex flex-col items-center justify-center h-full gap-4 p-4'>
-                  <p className='text-red-500 text-sm text-center'>Erreur de chargement du canevas</p>
-                  <button 
-                    className='px-4 py-2 text-sm bg-primary text-primary-foreground rounded-lg'
-                    onClick={() => window.location.reload()}
-                  >
-                    Recharger
-                  </button>
-                </div>
-              ) : (
-                <div className='relative w-full h-full'>
-                  <CanvasExcali canvasId={id} initialData={canvas?.data} />
-                  <CanvasMenu />
-                  <CanvasPopbarWrapper />
-                </div>
-              )}
+              <CanvasExcali canvasId={id} initialData={canvas?.data} />
+              <CanvasPopbarWrapper />
             </div>
-          </ResizablePanel>
-
-          <ResizableHandle />
-
-          <ResizablePanel defaultSize={25}>
-            <div className='flex-1 flex-grow bg-accent/50 w-full h-full overflow-y-auto'>
+          ) : (
+            <div className='w-full h-full overflow-y-auto bg-background'>
               <ChatInterface
                 canvasId={id}
                 sessionList={sessionList}
@@ -180,9 +137,55 @@ function Canvas() {
                 sessionId={searchSessionId}
               />
             </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          )}
+        </div>
       </div>
+    )
+  }
+
+  // Desktop layout
+  return (
+    <div className='flex flex-col w-full h-screen'>
+      <CanvasHeader
+        canvasName={canvasName}
+        canvasId={id}
+        onNameChange={setCanvasName}
+        onNameSave={handleNameSave}
+      />
+      <ResizablePanelGroup
+        direction='horizontal'
+        className='w-full flex-1'
+        autoSaveId='jaaz-chat-panel'
+      >
+        <ResizablePanel defaultSize={75}>
+          <div className='relative w-full h-full'>
+            <CanvasExcali canvasId={id} initialData={canvas?.data} />
+            <CanvasMenu />
+            <CanvasPopbarWrapper />
+          </div>
+        </ResizablePanel>
+
+        <ResizableHandle />
+
+        <ResizablePanel defaultSize={25}>
+          <div className='flex-1 flex-grow bg-accent/50 w-full h-full overflow-y-auto'>
+            <ChatInterface
+              canvasId={id}
+              sessionList={sessionList}
+              setSessionList={setSessionList}
+              sessionId={searchSessionId}
+            />
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
+  )
+}
+
+function Canvas() {
+  return (
+    <CanvasProvider>
+      <CanvasContent />
     </CanvasProvider>
   )
 }
